@@ -1,0 +1,1491 @@
+<SCRIPT>
+	var arrGetInputs = new Array(9);
+
+/**
+Fill the input sudoku to find the answers, enter 0 for empty cells 
+This program should identify answers for most scenarios but might not work for advanced sudokus
+***/
+/***Basic***/
+	arrGetInputs[0] = [5,3,0,0,7,0,0,0,0];
+	arrGetInputs[1] = [6,0,0,1,9,5,0,0,0]; 
+	arrGetInputs[2] = [0,9,8,0,0,0,0,6,0]; 
+	arrGetInputs[3] = [8,0,0,0,6,0,0,0,3]; 
+	arrGetInputs[4] = [4,0,0,8,0,3,0,0,1];
+	arrGetInputs[5] = [7,0,0,0,2,0,0,0,6];
+	arrGetInputs[6] = [0,6,0,0,0,0,2,8,0]; 
+	arrGetInputs[7] = [0,0,0,4,1,9,0,0,5];
+	arrGetInputs[8] = [0,0,0,0,8,0,0,7,9];
+/************/
+
+	var arrAssumption = new Array(9);
+
+	var arrColRowMax = [ 2, 2, 2, 5, 5, 5, 8, 8, 8 ];
+	var arrRemRowCol = [ '12', '02', '01', '45', '35', '34', '78', '68', '67' ];
+	var strDigits	 = "123456789";
+	var DigitsFound  = 0;
+	var CandidatesFound = 0;
+
+	var ColMin, ColMax;
+	var RowMin, RowMax;
+	var arrCol 		= new Array(9);
+	var arrAssumptionCol 	= new Array(9);
+	var strTemp		= "";
+	var strActual		= ""; 
+	var strAssume		= "";
+
+	for ( var print = 0; print < arrGetInputs.length; print++ )
+	{
+		arrAssumption [ print ] = arrGetInputs [print].join(",").toString().split(",");
+		document.write ( arrGetInputs [print] + "<BR>" );
+	}
+	document.write ("****************<br>");	
+
+	function fnUpdateArrCol()
+	{
+		for ( var getCol = 0; getCol < arrGetInputs.length; getCol++ )
+		{
+			strActual 	= "";
+			strAssume	= "";
+			for ( var row = 0; row < arrGetInputs.length; row++ )
+			{
+				strActual 	= strActual + "" + arrGetInputs [ row ] [ getCol ];
+				strAssume	= strAssume + "" + arrAssumption [ row ] [ getCol ];
+			}
+			
+			arrCol [ getCol ] = strActual;
+			arrAssumptionCol [ getCol ] = strAssume;
+		}		
+	}
+	
+	fnUpdateArrCol();
+		
+	function InsertIfFound(step)
+	{		
+		strTemp = "";		
+		
+		if ( strBlock.length == 1 )
+		{		
+			
+			document.write ("*Step:" + step + "*******New:(" + parserow + "," + parsecol + ") = " + strBlock + "*******<br>");
+			for ( var print = 0; print < arrGetInputs.length; print++ )
+			{
+				document.write ( arrGetInputs [print] + "<BR>" );
+			}
+			document.write ("****************<br>");
+					
+			arrGetInputs [ parserow ] [ parsecol ] 	= parseInt ( strBlock, 10 );
+			arrAssumption [parserow][parsecol]	= parseInt ( strBlock, 10 );
+			fnUpdateArrCol();
+				
+			atleastfoundone = 1;
+			DigitsFound++;
+			return true;
+		}
+		else if ( strBlock.length == 0 )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+
+
+	function CurrentBlockAvailableNumbers()
+	{
+		for ( var checkInsideRow = RowMin; checkInsideRow <= RowMax; checkInsideRow++ )
+		{	
+			for ( var checkInsideCol = ColMin; checkInsideCol <= ColMax; checkInsideCol++ )
+			{
+				strBlock = strBlock.replace ( arrGetInputs [ checkInsideRow ] [ checkInsideCol ].toString(), "" );
+			}
+		}
+	}
+
+	function getNumberByComp_Current_Row()
+	{
+		
+		strTemp = "";
+		strTemp = strBlock;
+	
+		for ( var leftRight = 0; leftRight < strBlock.length; leftRight++ )
+		{
+			var strLeftRight = arrGetInputs [ parserow ].toString();					
+				
+			if ( strLeftRight.indexOf ( strBlock.charAt(leftRight) ) != -1 )
+			{
+				strTemp = strTemp.replace ( strBlock.charAt(leftRight), "" );				
+			}		
+		}
+		strBlock = strTemp;
+	}
+
+	function getNumberByComp_Current_Col()
+	{
+		strTemp = "";
+		strTemp = strBlock;
+
+		for ( var topDown = 0; topDown < strBlock.length; topDown++ )
+		{
+			var strTopDown = arrCol [ parsecol ].toString();		
+
+			if ( strTopDown.indexOf ( strBlock.charAt(topDown) ) != -1 )
+			{
+				strTemp = strTemp.replace ( strBlock.charAt(topDown), "" );				
+			}
+		}
+		strBlock = strTemp;
+	}
+
+	function getNumberByComp_CurBlock_Rem_RwCol()
+	{
+		
+		var strtemp1 	= "";
+		strTemp		= "";
+		var strRemRows 	= arrRemRowCol [ parserow ].toString();
+		var strRemCols	= arrRemRowCol [ parsecol ].toString();
+						
+		var strOthrRow1 = arrGetInputs [ parseInt( strRemRows.charAt(0), 10 ) ].toString();
+		var strOthrRow2 = arrGetInputs [ parseInt( strRemRows.charAt(1), 10 ) ].toString();
+
+		for ( var checkRemRw = 0; checkRemRw < strBlock.length; checkRemRw++ )
+		{				
+			if ( 
+				( 
+				  strOthrRow1.indexOf ( strBlock.charAt(checkRemRw) ) != -1 
+				  &&
+				  strOthrRow2.indexOf ( strBlock.charAt(checkRemRw) ) != -1
+				)
+				&& 
+				strTemp.indexOf ( strBlock.charAt(checkRemRw) ) == -1
+			   )
+			{
+				strTemp = strTemp + "" + strBlock.charAt(checkRemRw);
+			}
+		}
+		
+		if  ( strTemp != "" )
+		{
+
+			var strOthrCol1 = arrCol [ parseInt( strRemCols.charAt(0), 10 ) ].toString();
+			var strOthrCol2 = arrCol [ parseInt( strRemCols.charAt(1), 10 ) ].toString();
+	
+			for ( var checkRemCl = 0; checkRemCl < strTemp.length; checkRemCl++ )
+			{				
+				if ( 
+					( 
+					   strOthrCol1.indexOf ( strTemp.charAt(checkRemCl) ) != -1 
+						&& 
+					   strOthrCol2.indexOf ( strTemp.charAt(checkRemCl) ) != -1 
+					)
+					&&
+					strtemp1.indexOf ( strTemp.charAt(checkRemCl) ) == -1 
+				   )
+				{
+					strtemp1 = strtemp1 + "" + strTemp.charAt(checkRemCl);
+				}
+			}			
+		}
+
+		strTemp = strtemp1;		
+	}
+
+	function getNumberByComp_either_CurBlock_Rw_or_Col() 
+	{
+
+		strTemp		= "";
+		var strRemRows 	= arrRemRowCol [ parserow ].toString();
+		var strRemCols	= arrRemRowCol [ parsecol ].toString();
+
+		if ( arrGetInputs [parseInt(strRemRows.charAt(0), 10)][ parsecol ] != 0 && arrGetInputs [parseInt(strRemRows.charAt(1), 10)][ parsecol ] != 0 )
+		{
+
+			var strOthrCol1 = arrCol [ parseInt( strRemCols.charAt(0), 10 ) ].toString();
+			var strOthrCol2 = arrCol [ parseInt( strRemCols.charAt(1), 10 ) ].toString();
+	
+			for ( var checkRemCl = 0; checkRemCl < strBlock.length; checkRemCl++ )
+			{				
+				if ( 
+					( 
+					   strOthrCol1.indexOf ( strBlock.charAt(checkRemCl) ) != -1 
+						&& 
+					   strOthrCol2.indexOf ( strBlock.charAt(checkRemCl) ) != -1 
+					)
+					&& 
+					strTemp.indexOf ( strBlock.charAt(checkRemCl) ) == -1 
+				   )
+				{
+					strTemp = strTemp + "" + strBlock.charAt(checkRemCl);
+				}
+			}			
+
+		}
+		else if ( arrGetInputs [parserow] [ parseInt(strRemCols.charAt(0), 10) ] != 0 && arrGetInputs [parserow][ parseInt(strRemCols.charAt(1), 10) ] != 0 )
+		{			
+			var strOthrRow1 = arrGetInputs [ parseInt( strRemRows.charAt(0), 10 ) ].toString();
+			var strOthrRow2 = arrGetInputs [ parseInt( strRemRows.charAt(1), 10 ) ].toString();			
+			
+			for ( var checkRemRw = 0; checkRemRw < strBlock.length; checkRemRw++ )
+			{				
+				if ( 
+					( 
+					   strOthrRow1.indexOf ( strBlock.charAt(checkRemRw) ) != -1 
+						&& 
+					   strOthrRow2.indexOf ( strBlock.charAt(checkRemRw) ) != -1 
+					)
+					&& 
+					strTemp.indexOf ( strBlock.charAt(checkRemRw) ) == -1 
+				   )
+				{
+					strTemp = strTemp + "" + strBlock.charAt(checkRemRw);
+				}
+			}						
+		}
+		else
+		{
+			strTemp = "";
+		}				
+	}
+
+	function getNumberIfexists_in_2Rws1Col_or_2Cols1Rw()
+	{
+
+		strTemp		= "";	
+
+		var strRemRows 	= arrRemRowCol [ parserow ].toString();
+		var strRemCols	= arrRemRowCol [ parsecol ].toString();
+	
+		var othrcol1 = arrGetInputs [parserow][parseInt(strRemCols.charAt(0), 10)];
+		var othrcol2 = arrGetInputs [parserow][parseInt(strRemCols.charAt(1), 10)];
+		var othrrow1 = arrGetInputs [parseInt(strRemRows.charAt(0), 10)][parsecol];
+		var othrrow2 = arrGetInputs [parseInt(strRemRows.charAt(1), 10)][parsecol];
+
+		var strOthrCol1 = arrCol [ parseInt( strRemCols.charAt(0), 10 ) ].toString();
+		var strOthrCol2 = arrCol [ parseInt( strRemCols.charAt(1), 10 ) ].toString();
+		var strRemOthrCol = "";
+
+		var strOthrRow1 = arrGetInputs [ parseInt( strRemRows.charAt(0), 10 ) ].toString();
+		var strOthrRow2 = arrGetInputs [ parseInt( strRemRows.charAt(1), 10 ) ].toString();
+		var strRemOthrRow = "";
+
+		if ( othrrow1 == 0 && othrrow2 != 0 )
+		{
+			strRemOthrRow = strOthrRow1;		
+		}
+		else if ( othrrow1 != 0 && othrrow2 == 0  )		
+		{
+			strRemOthrRow = strOthrRow2;
+		}
+
+		if ( othrcol1 == 0 && othrcol2 != 0 )
+		{
+			strRemOthrCol = strOthrCol1;					
+		}
+		else if ( othrcol1 != 0 && othrcol2 == 0  )
+		{
+			strRemOthrCol = strOthrCol2;
+		}
+	
+		if ( ( othrrow1 == 0 && othrrow2 != 0 ) || ( othrrow1 != 0 && othrrow2 == 0  ) )
+		{
+			for ( var checkRemClRw = 0; checkRemClRw < strBlock.length; checkRemClRw++ )
+			{				
+				if ( 
+					( 
+					   strOthrCol1.indexOf ( strBlock.charAt(checkRemClRw) ) != -1 
+						&& 
+					   strOthrCol2.indexOf ( strBlock.charAt(checkRemClRw) ) != -1
+						&&
+					   strRemOthrRow.indexOf ( strBlock.charAt(checkRemClRw) ) != -1 
+					)
+					&& 
+					strTemp.indexOf ( strBlock.charAt(checkRemClRw) ) == -1 
+				   )
+				{
+					strTemp = strTemp + "" + strBlock.charAt(checkRemClRw);
+				}
+			}
+
+		}
+		
+		if ( strTemp == "" && ( ( othrcol1 == 0 && othrcol2 != 0 ) || ( othrcol1 != 0 && othrcol2 == 0  ) ) )
+		{
+			for ( var checkRemRwCl = 0; checkRemRwCl < strBlock.length; checkRemRwCl++ )
+			{				
+				if ( 
+					( 
+					   strOthrRow1.indexOf ( strBlock.charAt(checkRemRwCl) ) != -1 
+						&& 
+					   strOthrRow2.indexOf ( strBlock.charAt(checkRemRwCl) ) != -1 
+						&&
+					   strRemOthrCol.indexOf ( strBlock.charAt(checkRemRwCl) ) != -1
+					)
+					&& 
+					strTemp.indexOf ( strBlock.charAt(checkRemRwCl) ) == -1 
+				   )
+				{
+					strTemp = strTemp + "" + strBlock.charAt(checkRemRwCl);
+				}
+			}
+		}
+		
+		if ( strTemp.length != 1 )
+		{
+			strTemp = "";
+		}	
+	}
+
+
+	function fnCheckIfFoundFromAssumptionCollections()
+	{		
+
+		strTemp		= "";
+		var strHoldTemp	= arrAssumption [parserow][parsecol];
+		var strRemRows 	= arrRemRowCol [ parserow ].toString();		
+						
+		var strOthrRow1 = arrAssumption [ parseInt( strRemRows.charAt(0), 10 ) ].toString();
+		var strOthrRow2 = arrAssumption [ parseInt( strRemRows.charAt(1), 10 ) ].toString();
+
+		arrAssumption [parserow][parsecol] = 0;
+		var strCurRow	= arrAssumption [ parserow ].toString();
+
+		for ( var checkRemRw = 0; checkRemRw < strBlock.length; checkRemRw++ )
+		{						
+			
+			var strRg = strBlock.charAt(checkRemRw);
+			var patt = new RegExp ( strRg, 'g');
+		
+			if ( 
+				(					
+					( 
+					  ( strOthrRow1.match(patt) != null &&  strOthrRow1.match(patt).length > 1 )
+					  &&
+					  ( strOthrRow2.match(patt) != null &&  strOthrRow2.match(patt).length == 1 )
+					)
+					||
+					(				
+					  ( strOthrRow1.match(patt) != null &&  strOthrRow1.match(patt).length == 1 )
+					  &&
+					  ( strOthrRow2.match(patt) != null &&  strOthrRow2.match(patt).length > 1 )
+					)	
+				)
+				&& 
+				strCurRow.match(patt) == null
+			   )
+			{	
+				strTemp = strTemp + "" + strBlock.charAt(checkRemRw);
+			}
+		}		
+		
+		if  ( strTemp == "" )
+		{
+			var strRemCols	= arrRemRowCol [ parsecol ].toString();
+			var strOthrCol1 = arrAssumptionCol [ parseInt( strRemCols.charAt(0), 10 ) ].toString();
+			var strOthrCol2 = arrAssumptionCol [ parseInt( strRemCols.charAt(1), 10 ) ].toString();
+			var strCurCol	= arrAssumptionCol [ parsecol ].toString();
+	
+			for ( var checkRemCl = 0; checkRemCl < strBlock.length; checkRemCl++ )
+			{				
+				
+				var strRg = strBlock.charAt(checkRemCl);
+				var patt = new RegExp ( strRg, 'g');							
+
+				if ( 
+					(					
+						( 
+						  (  strOthrCol1.match(patt) != null && strOthrCol1.match(patt).length > 1 )
+						  &&
+						  ( strOthrCol2.match(patt) != null &&  strOthrCol2.match(patt).length == 1 )
+						)
+						||
+						(				
+						  ( strOthrCol1.match(patt) != null && strOthrCol1.match(patt).length == 1 )
+						  &&
+						  ( strOthrCol2.match(patt) != null && strOthrCol2.match(patt).length > 1 )
+						)	
+					)
+					&& 
+					strCurCol.match(patt) == null
+			   	)
+				{
+					strTemp = strTemp + "" + strBlock.charAt(checkRemCl);
+				}
+
+			}			
+		}		
+		
+		arrAssumption [parserow][parsecol] = strHoldTemp;		
+
+	}
+
+	function fnUnlockAssumptions()
+	{
+
+		CandidatesFound = 0;
+		//Check by eliminating row & col digits
+		for ( var unlockcol = 0; unlockcol < arrAssumption.length; unlockcol++ )
+		{
+
+			for ( var unlockrow = 0; unlockrow < arrAssumption [ unlockcol ].length; unlockrow++ )
+			{
+
+				if ( arrAssumption [ unlockrow ] [ unlockcol ] != 0 && arrAssumption [ unlockrow ] [ unlockcol ].length > 1 )
+				{				
+					var strLockedDigits 	= arrAssumption [ unlockrow ] [ unlockcol ].toString();
+					var strRemCols		= arrRemRowCol [ unlockcol ].toString();					
+					var strRemRows 		= arrRemRowCol [ unlockrow ].toString();
+					
+					for ( var eliminator = 0; eliminator < strLockedDigits.length; eliminator++ )
+					{
+						
+						var strEliminateDigit 	= strLockedDigits.charAt(eliminator);
+						var foundADigit 	= 0;
+
+						var strHoldVal, strHoldVal1, strHoldVal2;
+						strHoldVal 	= arrAssumption [ unlockrow ] [ unlockcol ];
+						strHoldVal1 	= arrAssumption [ strRemRows.charAt(0) ] [ unlockcol ];
+						strHoldVal2 	= arrAssumption [ strRemRows.charAt(1) ] [ unlockcol ];
+
+						arrAssumption [ unlockrow ] [ unlockcol ] 		= 0;
+						arrAssumption [ strRemRows.charAt(0) ] [ unlockcol ] 	= 0;
+						arrAssumption [ strRemRows.charAt(1) ] [ unlockcol ]	= 0;
+						fnUpdateArrCol();
+
+						var strAssCol	= arrAssumptionCol [ unlockcol ];						
+
+						if ( strAssCol.indexOf ( strEliminateDigit ) == -1 )
+						{
+							var RMax = arrColRowMax [ unlockrow ];
+							var RMin = RMax-2;
+							var CMax = arrColRowMax [ unlockcol ];
+							var CMin = CMax-2;
+
+							for (var updateCurBlockCol = CMin; updateCurBlockCol <= CMax; updateCurBlockCol++ )
+							{
+								if ( updateCurBlockCol != unlockcol )
+								{
+									for ( var updateCurBlock = RMin; updateCurBlock <= RMax; updateCurBlock++ ) 
+									{
+										if ( arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().indexOf(strEliminateDigit) != -1 )
+										{											
+											var strUpdted = arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().replace(strEliminateDigit, '');
+											arrAssumption [ updateCurBlock ] [ updateCurBlockCol ] = strUpdted;
+
+											if ( strUpdted.length == 1 )
+											{
+												document.write ( "<BR>****NewU:(" + updateCurBlock + "," + updateCurBlockCol + ") = " +  strUpdted + "********<BR>" );
+												foundADigit = 1;
+												arrGetInputs [ updateCurBlock ] [ updateCurBlockCol ] = parseInt ( strUpdted, 10 );
+												DigitsFound++;
+											}
+											else
+											{
+												CandidatesFound = 1;
+											}
+
+										}										
+									}	
+								}
+							}
+
+							if ( strHoldVal1 != 0 && strHoldVal2 != 0 && strHoldVal1.toString().indexOf(strEliminateDigit) == -1 && strHoldVal2.toString().indexOf(strEliminateDigit) == -1 )
+							{
+								strHoldVal = strEliminateDigit;
+								document.write ( "<BR>****lone if1:(" + unlockrow + "," + unlockcol + ") = " +  strHoldVal + "********<BR>" );
+								foundADigit = 1;
+								arrGetInputs [ unlockrow ] [ unlockcol ] = parseInt ( strHoldVal, 10 );
+								DigitsFound++;
+							}
+
+						}
+						else if (  arrAssumption[unlockrow][strRemCols.charAt(0)].toString().indexOf(strEliminateDigit) == -1
+								&&
+							   arrAssumption[unlockrow][strRemCols.charAt(1)].toString().indexOf(strEliminateDigit) == -1
+								&&
+							   arrAssumption[strRemRows.charAt(0)][strRemCols.charAt(0)].toString().indexOf(strEliminateDigit) == -1	
+								&&
+							   arrAssumption[strRemRows.charAt(0)][strRemCols.charAt(1)].toString().indexOf(strEliminateDigit) == -1	
+								&&
+							   arrAssumption[strRemRows.charAt(1)][strRemCols.charAt(0)].toString().indexOf(strEliminateDigit) == -1	
+								&&
+							   arrAssumption[strRemRows.charAt(1)][strRemCols.charAt(1)].toString().indexOf(strEliminateDigit) == -1	
+							)
+						{
+							var RMax = arrColRowMax [ unlockrow ];
+							var RMin = RMax-2;
+							for (var updateCol = 0; updateCol < arrAssumption.length; updateCol++ )
+							{
+							  	if ( ( ! ( updateCol >= RMin && updateCol <= RMax) ) && arrAssumption [ updateCol ] [ unlockcol ].toString().indexOf(strEliminateDigit) != -1 )
+								{
+									var strUpdted = arrAssumption [ updateCol ] [ unlockcol ].replace(strEliminateDigit, '');
+									arrAssumption [ updateCol ] [ unlockcol ] = strUpdted;
+
+									if ( strUpdted.length == 1 )
+									{
+										document.write ( "<BR>****NewU:(" + updateCol + "," + unlockcol + ") = " +  strUpdted + "********<BR>" );
+										foundADigit = 1;
+										arrGetInputs [ updateCol ] [ unlockcol ] 	= parseInt ( strUpdted, 10 );
+										DigitsFound++;
+									}
+									else
+									{
+										CandidatesFound = 1;
+									}
+								}
+							}
+
+							if ( strHoldVal1 != 0 && strHoldVal2 != 0 && strHoldVal1.toString().indexOf(strEliminateDigit) == -1 && strHoldVal2.toString().indexOf(strEliminateDigit) == -1 )
+							{
+								strHoldVal = strEliminateDigit;
+								document.write ( "<BR>****lone elseif1(" + unlockrow + "," + unlockcol + ") = " +  strHoldVal + "********<BR>" );
+								foundADigit = 1;
+								arrGetInputs [ unlockrow ] [ unlockcol ] = parseInt ( strHoldVal, 10 );
+								DigitsFound++;
+							}
+
+						}						
+
+						arrAssumption [ unlockrow ] [ unlockcol ] = strHoldVal;
+						arrAssumption [ strRemRows.charAt(0) ] [ unlockcol ] = strHoldVal1;
+						arrAssumption [ strRemRows.charAt(1) ] [ unlockcol ] = strHoldVal2;
+						fnUpdateArrCol();
+												
+						strHoldVal1 	= arrAssumption [ unlockrow ] [ strRemCols.charAt(0) ];
+						strHoldVal2 	= arrAssumption [ unlockrow ] [ strRemCols.charAt(1) ];
+
+						arrAssumption [ unlockrow ] [ unlockcol ] 		= 0;
+						arrAssumption [ unlockrow ] [ strRemCols.charAt(0) ] 	= 0;
+						arrAssumption [ unlockrow ] [ strRemCols.charAt(1) ]	= 0;
+						
+						var strAssRow	= arrAssumption [ unlockrow ].toString();						
+
+						if ( strAssRow.indexOf ( strEliminateDigit ) == -1 )
+						{							 
+							var RMax = arrColRowMax [ unlockrow ];
+							var RMin = RMax-2;
+							var CMax = arrColRowMax [ unlockcol ];
+							var CMin = CMax-2;
+
+							for (var updateCurBlock = RMin; updateCurBlock <= RMax; updateCurBlock++ )
+							{//if ( unlockrow == 5 &&  unlockcol == 1 ) { alert ( RMax );}
+								if ( updateCurBlock != unlockrow )
+								{
+									for ( var updateCurBlockCol = CMin; updateCurBlockCol <= CMax; updateCurBlockCol++ ) 
+									{		//if ( unlockrow == 5 &&  unlockcol == 1 ) { alert ( updateCurBlock + "," + updateCurBlockCol );}
+										if ( arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().indexOf(strEliminateDigit) != -1 )
+										{	//if ( updateCurBlock == 3 &&  updateCurBlockCol  == 0 ) { alert (strEliminateDigit); alert ( "(" + unlockrow + "," + unlockcol + ")" );alert ( arrAssumption [ updateCurBlock ] [ updateCurBlockCol ] ); }
+											var strUpdted = arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().replace(strEliminateDigit, '');
+											arrAssumption [ updateCurBlock ] [ updateCurBlockCol ] = strUpdted;
+
+											if ( strUpdted.length == 1 )
+											{	//if ( updateCurBlock == 3 &&  updateCurBlockCol  == 0 ) { alert ( "in" ); alert ( strUpdted ); }
+												document.write ( "<BR>****NewU:(" + updateCurBlock + "," + updateCurBlockCol + ") = " +  strUpdted + "********<BR>" );
+												foundADigit = 1;
+												arrGetInputs [ updateCurBlock ] [ updateCurBlockCol ] = parseInt ( strUpdted, 10 );
+												DigitsFound++;
+											}
+											else
+											{
+												CandidatesFound = 1;
+											}
+
+										}										
+									}	
+								}
+							}
+							
+							if (    ( strHoldVal.length == 0 || strHoldVal.length > 1 ) 
+								&& strHoldVal1 != 0 && strHoldVal2 != 0 && strHoldVal1.toString().indexOf(strEliminateDigit) == -1 
+							 	&& strHoldVal2.toString().indexOf(strEliminateDigit) == -1 
+							    )
+							{
+								strHoldVal = strEliminateDigit;
+								document.write ( "<BR>****lone if2:(" + unlockrow + "," + unlockcol + ") = " +  strHoldVal + "********<BR>" );
+								foundADigit = 1;
+								arrGetInputs [ unlockrow ] [ unlockcol ] = parseInt ( strHoldVal, 10 );
+								DigitsFound++;
+							}
+						}
+						else if (  arrAssumption[strRemRows.charAt(0)][unlockcol].toString().indexOf(strEliminateDigit) == -1
+								&&
+							   arrAssumption[strRemRows.charAt(1)][unlockcol].toString().indexOf(strEliminateDigit) == -1
+								&&
+							   arrAssumption[strRemRows.charAt(0)][strRemCols.charAt(0)].toString().indexOf(strEliminateDigit) == -1	
+								&&
+							   arrAssumption[strRemRows.charAt(0)][strRemCols.charAt(1)].toString().indexOf(strEliminateDigit) == -1	
+								&&
+							   arrAssumption[strRemRows.charAt(1)][strRemCols.charAt(0)].toString().indexOf(strEliminateDigit) == -1	
+								&&
+							   arrAssumption[strRemRows.charAt(1)][strRemCols.charAt(1)].toString().indexOf(strEliminateDigit) == -1	
+							)
+						{
+							var CMax = arrColRowMax [ unlockcol ];
+							var CMin = CMax-2;
+							for (var updateRow = 0; updateRow < arrAssumption.length; updateRow++ )
+							{
+							  	if ( ( ! ( updateRow >= CMin && updateRow <= CMax) ) && arrAssumption [ unlockrow ] [ updateRow ].toString().indexOf(strEliminateDigit) != -1 )
+								{
+									var strUpdted = arrAssumption [ unlockrow ] [ updateRow ].toString().replace(strEliminateDigit, '');
+									arrAssumption [ unlockrow ] [ updateRow ] = strUpdted;
+
+									if ( strUpdted.length == 1 )
+									{
+										document.write ( "<BR>****NewU:(" + unlockrow + "," + updateRow + ") = " +  strUpdted + "********<BR>" );
+										foundADigit = 1;
+										arrGetInputs [ unlockrow ] [ updateRow ] = parseInt ( strUpdted, 10 );
+										DigitsFound++;
+									}
+									else
+									{
+										CandidatesFound = 1;
+									}
+								}
+							}
+
+							if ( strHoldVal1 != 0 && strHoldVal2 != 0 && strHoldVal1.toString().indexOf(strEliminateDigit) == -1 && strHoldVal2.toString().indexOf(strEliminateDigit) == -1 )								
+							{
+								strHoldVal = strEliminateDigit;
+								document.write ( "<BR>****lone elseif2:(" + unlockrow + "," + unlockcol + ") = " +  strHoldVal + "********<BR>" );
+								foundADigit = 1;
+								arrGetInputs [ unlockrow ] [ unlockcol ] = parseInt ( strHoldVal, 10 );
+								DigitsFound++;
+							}
+						}
+						
+						arrAssumption [ unlockrow ] [ unlockcol ] 		= strHoldVal;
+						arrAssumption [ unlockrow ] [ strRemCols.charAt(0) ] 	= strHoldVal1;
+						arrAssumption [ unlockrow ] [ strRemCols.charAt(1) ]	= strHoldVal2;
+						fnUpdateArrCol();						
+						
+						if ( foundADigit == 1 )
+						{
+							return true;
+						}
+
+					}
+				}
+			} 
+			
+		}
+
+		if ( CandidatesFound == 1 )
+		{				
+			fnUnlockAssumptions();
+		}
+		else
+		{
+			return false;
+		}
+
+	}
+
+	function NakedPair()
+	{
+		var foundADigit = 0;
+		CandidatesFound = 0;
+
+		for ( var unlockcol = 0; unlockcol < arrAssumption.length; unlockcol++ )
+		{
+			for ( var unlockrow = 0; unlockrow < arrAssumption [ unlockcol ].length; unlockrow++ )
+			{
+				if ( arrAssumption [ unlockrow ] [ unlockcol ] != 0 && arrAssumption [ unlockrow ] [ unlockcol ].length == 2 )
+				{
+					var strLockedDigits 	= arrAssumption [ unlockrow ] [ unlockcol ].toString();
+					var strRemCols		= arrRemRowCol [ unlockcol ].toString();			
+					var strRemRows 		= arrRemRowCol [ unlockrow ].toString();
+					var RMax = arrColRowMax [ unlockrow ];
+					var RMin = RMax-2;
+					var CMax = arrColRowMax [ unlockcol ];
+					var CMin = CMax-2;
+					
+					if ( 
+						arrAssumption[unlockrow][strRemCols.charAt(0)].toString() == strLockedDigits
+								||
+						arrAssumption[unlockrow][strRemCols.charAt(1)].toString() == strLockedDigits
+					   )
+					{						
+
+						for ( var eliminate = 0; eliminate < strLockedDigits.length; eliminate++ )
+						{
+							var strEliminateDigit = strLockedDigits.charAt(eliminate);
+							//eliminating in current block
+							for (var updateCurBlock = RMin; updateCurBlock <= RMax; updateCurBlock++ )
+							{
+								if ( updateCurBlock != unlockrow )
+								{
+									for ( var updateCurBlockCol = CMin; updateCurBlockCol <= CMax; updateCurBlockCol++ ) 
+									{	
+										if ( arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().indexOf(strEliminateDigit) != -1 )
+										{	//document.write ( "<BR>***********Assumptions == " + strLockedDigits + "[" + strEliminateDigit + "]  removed from ( " +  updateCurBlock + "," + updateCurBlockCol + ")***********<BR>");									
+											var strUpdted = arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().replace(strEliminateDigit, '');
+											arrAssumption [ updateCurBlock ] [ updateCurBlockCol ] = strUpdted;
+	
+											if ( strUpdted.length == 1 )
+											{
+												document.write ( "<BR>***NPR*New:(" + updateCurBlock + "," + updateCurBlockCol + ") = " +  strUpdted + "********<BR>" );
+												foundADigit = 1;
+												arrGetInputs [ updateCurBlock ] [ updateCurBlockCol ] = parseInt ( strUpdted, 10 );
+												DigitsFound++;	
+											}
+											else
+											{
+												CandidatesFound = 1;
+											}
+										}										
+									}	
+								}
+							}
+
+							//eliminating in current row other than current block row
+							for (updaterw = 0; updaterw < arrAssumption.length; updaterw++ )
+							{
+								if ( updaterw != strRemCols.charAt(0) && updaterw != strRemCols.charAt(1) && updaterw != unlockcol)
+								{
+									if ( arrAssumption [ unlockrow ] [ updaterw ].toString().indexOf(strEliminateDigit) != -1 )
+									{	//document.write ( "<BR>***********Assumptions == " + strLockedDigits + "[" + strEliminateDigit + "]  removed from ( " + unlockrow + "," + updaterw + ")***********<BR>");
+										var strUpdted = arrAssumption [ unlockrow ] [ updaterw ].toString().replace(strEliminateDigit, '');
+										arrAssumption [ unlockrow ] [ updaterw ] = strUpdted;
+	
+										if ( strUpdted.length == 1 )
+										{
+											document.write ( "<BR>**NPR**New:(" + unlockrow + "," + updaterw + ") = " + strUpdted + "********<BR>" );
+											foundADigit = 1;
+											arrGetInputs [ unlockrow ] [ updaterw ] = parseInt ( strUpdted, 10 );
+											DigitsFound++;	
+										}
+										else
+										{
+											CandidatesFound = 1;
+										}	
+									}
+								}
+							}
+							
+						}
+												
+						if ( foundADigit == 1 )
+						{
+							fnUpdateArrCol();
+							return true;
+						}
+					}
+					else if 
+					   ( 
+						arrAssumption[strRemRows.charAt(0)][unlockcol].toString() == strLockedDigits
+								||
+						arrAssumption[strRemRows.charAt(1)][unlockcol].toString() == strLockedDigits
+					   )
+					{						
+
+						for ( var eliminate = 0; eliminate < strLockedDigits.length; eliminate++ )
+						{
+							var strEliminateDigit = strLockedDigits.charAt(eliminate);
+							//eliminating in current block
+
+							for (var updateCurBlockCol = CMin; updateCurBlockCol <= CMax; updateCurBlockCol++ )
+							{
+								if ( updateCurBlockCol != unlockcol )
+								{
+									for ( var updateCurBlock = RMin; updateCurBlock <= RMax; updateCurBlock++ ) 
+									{
+										if ( arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().indexOf(strEliminateDigit) != -1 )
+										{
+											//document.write ( "<BR>***********Assumptions == " + strLockedDigits + "[" + strEliminateDigit + "]  removed from ( " + updateCurBlock + "," + updateCurBlockCol + ")***********<BR>");
+											var strUpdted = arrAssumption [ updateCurBlock ] [ updateCurBlockCol ].toString().replace(strEliminateDigit, '');
+											arrAssumption [ updateCurBlock ] [ updateCurBlockCol ] = strUpdted;
+
+											if ( strUpdted.length == 1 )
+											{
+												document.write ( "<BR>***NPC*New(" + updateCurBlock + "," + updateCurBlockCol + ") = " + strUpdted + "********<BR>" );
+												foundADigit = 1;
+												arrGetInputs [ updateCurBlock ] [ updateCurBlockCol ] = parseInt ( strUpdted, 10 );
+												DigitsFound++;
+											}
+											else
+											{
+												CandidatesFound = 1;
+											}
+
+										}										
+									}	
+								}
+							}
+
+							//eliminating in current col other than current block col
+							for (updatecol = 0; updatecol < arrAssumption.length; updatecol++ )
+							{
+								if ( updatecol != strRemRows.charAt(0) && updatecol != strRemRows.charAt(1) && updatecol != unlockrow)
+								{
+									if ( arrAssumption [ updatecol ] [ unlockcol ].toString().indexOf(strEliminateDigit) != -1 )
+									{	//document.write ( "<BR>***********Assumptions == " + strLockedDigits + "[" + strEliminateDigit + "]  removed from ( " + updatecol + "," + unlockcol + ")***********<BR>");
+										var strUpdted = arrAssumption [ updatecol ] [ unlockcol ].toString().replace(strEliminateDigit, '');
+										arrAssumption [ updatecol ] [ unlockcol ] = strUpdted;
+	
+										if ( strUpdted.length == 1 )
+										{
+											document.write ( "<BR>**NPC**New:(" + updatecol + "," + unlockcol + ") = " + strUpdted + "********<BR>" );
+											foundADigit = 1;
+											arrGetInputs [ updatecol ] [ unlockcol ] = parseInt ( strUpdted, 10 );
+											DigitsFound++;	
+										}
+										else
+										{
+											CandidatesFound = 1;
+										}	
+									}
+								}
+							}
+							
+						}						
+						
+						if ( foundADigit == 1 )
+						{
+							fnUpdateArrCol();
+							return true;
+						}
+					}
+					else						 
+					{
+						var pairfoundindex = -1;
+						//check in other block cols for naked pair
+						for ( pair = 0; pair < arrAssumption.length; pair++ )
+						{
+							if ( ! ( pair >= RMin && pair <= RMax ) && arrAssumption [pair][unlockcol].toString() == strLockedDigits )
+							{
+								document.write ( arrAssumption [pair][unlockcol].toString() + "<BR>" );
+								pairfoundindex = pair;
+							}
+						}						
+
+						if ( pairfoundindex != -1 )
+						{
+
+							for ( var eliminate = 0; eliminate < strLockedDigits.length; eliminate++ )
+							{	
+								var strEliminateDigit = strLockedDigits.charAt(eliminate);
+	
+								for ( pair = 0; pair < arrAssumption.length; pair++ )
+								{
+									if ( pair != pairfoundindex && pair != unlockrow && arrAssumption [pair][unlockcol].toString().indexOf(strEliminateDigit) != -1 )
+									{	//document.write ( "curpair " + pair + " vs pfi " + pairfoundindex + " col " + unlockcol + " Edig " + strEliminateDigit + " Ldig " + strLockedDigits);
+										
+										//document.write ( "<BR>***************" + arrAssumption [pair][unlockcol].toString() + "<BR>" );
+										var strUpdted = arrAssumption [ pair ] [ unlockcol ].toString().replace(strEliminateDigit, '');
+										arrAssumption [ pair ] [ unlockcol ] = strUpdted;
+		
+										if ( strUpdted.length == 1 )
+										{	//alert ( strLockedDigits + "(" +  pair + "," + unlockcol + ") ->" + strUpdted );
+											document.write ( "<BR>**PFinOB1**New:(" +  pair + "," + unlockcol + ") = " +  strUpdted + "********<BR>" );
+											foundADigit = 1;
+											arrGetInputs [ pair ] [ unlockcol ] = parseInt ( strUpdted, 10 );
+											DigitsFound++;	
+										}
+										else
+										{
+											CandidatesFound = 1;
+										}
+									}
+								}
+							}
+
+							if ( foundADigit == 1 )
+							{
+								fnUpdateArrCol();
+								return true;
+							}
+
+						}
+
+						pairfoundindex = -1;
+
+						for ( pair = 0; pair < arrAssumption.length; pair++ )
+						{
+							if ( ! ( pair >= CMin && pair <= CMax ) && arrAssumption [unlockrow][pair].toString() == strLockedDigits )
+							{
+								pairfoundindex = pair;
+							}
+						}						
+
+						if ( pairfoundindex != -1 )
+						{
+
+							for ( var eliminate = 0; eliminate < strLockedDigits.length; eliminate++ )
+							{	
+								var strEliminateDigit = strLockedDigits.charAt(eliminate);
+	
+								for ( pair = 0; pair < arrAssumption.length; pair++ )
+								{
+									if ( pair != pairfoundindex && pair != unlockcol && arrAssumption [unlockrow][pair].toString().indexOf(strEliminateDigit) != -1 )
+									{	//document.write ( "curpair " + pair + " vs pfi " + pairfoundindex + " col " + unlockcol + " Edig " + strEliminateDigit + " Ldig " + strLockedDigits);
+										var strUpdted = arrAssumption [unlockrow][pair].toString().replace(strEliminateDigit, '');
+										arrAssumption [unlockrow][pair] = strUpdted;
+	
+										if ( strUpdted.length == 1 )
+										{
+											document.write ( "<BR>**PFinOB**New:(" + unlockrow + "," + pair + ")" +  strUpdted + "********<BR>" );
+											foundADigit = 1;
+											arrGetInputs [unlockrow][pair] = parseInt ( strUpdted, 10 );
+											DigitsFound++;	
+										}
+										else
+										{
+											CandidatesFound = 1;
+										}
+									}
+								}
+							}
+
+							if ( foundADigit == 1 )
+							{
+								fnUpdateArrCol();
+								return true;
+							}
+
+						}
+					}
+				}				
+			}
+		}
+
+		fnUpdateArrCol();
+
+		if ( CandidatesFound == 1 )
+		{
+			if ( ! fnUnlockAssumptions() )
+			{
+				NakedPair();
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return false;
+		}
+
+	}
+
+	function SubSets()
+	{
+		var foundADigit = 0;
+		CandidatesFound = 0;
+		
+		for ( var unlockcol = 0; unlockcol < arrAssumption.length; unlockcol++ )
+		{
+			for ( var unlockrow = 0; unlockrow < arrAssumption [ unlockcol ].length; unlockrow++ )
+			{
+				if ( arrAssumption [ unlockrow ] [ unlockcol ] != 0 && arrAssumption [ unlockrow ] [ unlockcol ].length == 3 )
+				{
+					var strLockedDigits 	= arrAssumption [ unlockrow ] [ unlockcol ].toString();					
+					var RMax = arrColRowMax [ unlockrow ];
+					var RMin = RMax-2;
+					var CMax = arrColRowMax [ unlockcol ];
+					var CMin = CMax-2;
+					
+					var subsetfound = 0;
+					var strSet2 = "";
+					var strSet3 = "";
+					//document.write ( "<br>LockedDig<br>" + strLockedDigits + "(" + unlockrow + "," + unlockcol + ")" );
+					for (var updateCurBlockCol = CMin; updateCurBlockCol <= CMax; updateCurBlockCol++ )
+					{						
+						for ( var updateCurBlockrow = RMin; updateCurBlockrow <= RMax; updateCurBlockrow++ ) 
+						{	
+							var curPos = unlockrow + "" + unlockcol;						
+							//other than cur cell in the cur block 
+							if ( updateCurBlockrow + "" + updateCurBlockCol != curPos
+								&& arrAssumption [ updateCurBlockrow ] [ updateCurBlockCol ].length == 2 )
+							{	
+								var strGetCurDig = arrAssumption [ updateCurBlockrow ] [ updateCurBlockCol ].toString();
+								//document.write ( "<br>Compare |=====><br>" + strGetCurDig + "(" + updateCurBlockrow + "," + updateCurBlockCol + ")" );
+								if ( 
+									strLockedDigits.indexOf ( strGetCurDig.charAt(0) ) != -1
+									&&
+									strLockedDigits.indexOf ( strGetCurDig.charAt(1) ) != -1
+								   )
+								{
+									subsetfound++;	
+									if ( strSet2 == "" ) { strSet2 = updateCurBlockrow + "" + updateCurBlockCol; }
+									else if ( strSet3 == "" ) { strSet3 = updateCurBlockrow + "" + updateCurBlockCol; }
+								}
+							}		
+						}							
+					}
+				
+					if ( subsetfound == 2 )
+					{	//document.write ( "<br>SubsetFound<br>" + updateCurBlockrow + "" + updateCurBlockCol );
+						for (var updateCurBlockCol = CMin; updateCurBlockCol <= CMax; updateCurBlockCol++ )
+						{						
+							for ( var updateCurBlockrow = RMin; updateCurBlockrow <= RMax; updateCurBlockrow++ ) 
+							{																				
+								var curPos = updateCurBlockrow + "" + updateCurBlockCol;
+							
+								//other than subset cells in the cur block 
+								if ( curPos != (unlockrow + "" + unlockcol)
+									&& curPos != strSet2
+									&& curPos != strSet3 )
+								{
+									var strGetCurDig = arrAssumption [ updateCurBlockrow ] [ updateCurBlockCol ].toString();
+									var Updated	 = 0;
+
+									if ( strGetCurDig.length > 1 )
+									{														
+										for ( var eliminate = 0; eliminate < strLockedDigits.length; eliminate++ )
+										{								
+											if ( strGetCurDig.indexOf ( strLockedDigits.charAt(eliminate) ) != -1 )
+											{	
+												strGetCurDig = strGetCurDig.replace(strLockedDigits.charAt(eliminate), '');												
+												Updated	 = 1;
+											}
+										}
+
+										if ( Updated == 1 )
+										{
+											arrAssumption [ updateCurBlockrow ] [ updateCurBlockCol ] = strGetCurDig;
+											
+											if ( strGetCurDig.length == 1 )
+											{	document.write ( "<BR>Found in subsets (" + updateCurBlockrow +"," + updateCurBlockCol + ")=" + strGetCurDig + "<BR>");
+												foundADigit = 1;
+												arrGetInputs [ updateCurBlockrow ] [ updateCurBlockCol ] = parseInt ( strGetCurDig, 10 );
+												DigitsFound++;	
+											}
+											else
+											{
+												CandidatesFound = 1;
+											}	
+										}	
+										
+									}
+								}
+
+								if ( foundADigit == 1 )
+								{
+									fnUpdateArrCol();
+									return true;
+								}		
+							}							
+						}
+					}
+
+				}
+			}
+		}
+		document.write ( "<BR> subsets CandidatesFound  :: " + CandidatesFound + "<BR>");
+		fnUpdateArrCol();
+
+		if ( CandidatesFound == 1 )
+		{
+			if ( ! fnUnlockAssumptions() )
+			{
+				SubSets();
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	function xyzWing()
+	{
+		var foundADigit = 0;
+		CandidatesFound = 0;
+		
+		for ( var unlockcol = 0; unlockcol < arrAssumption.length; unlockcol++ )
+		{
+			for ( var unlockrow = 0; unlockrow < arrAssumption [ unlockcol ].length; unlockrow++ )
+			{
+				if ( arrAssumption [ unlockrow ] [ unlockcol ] != 0 && arrAssumption [ unlockrow ] [ unlockcol ].length == 3 )
+				{					
+					var strLockedDigits 	= arrAssumption [ unlockrow ] [ unlockcol ].toString();					
+					var RMax = arrColRowMax [ unlockrow ];
+					var RMin = RMax-2;
+					var CMax = arrColRowMax [ unlockcol ];
+					var CMin = CMax-2;
+					var strRemCols		= arrRemRowCol [ unlockcol ].toString();			
+					var strRemRows 		= arrRemRowCol [ unlockrow ].toString();
+					
+					var strSet2 = "";
+					var strSet3 = "";
+					var insideBlock = 0;
+					
+					for (var updateCurBlockrow = 0; updateCurBlockrow < arrAssumption.length; updateCurBlockrow++ )
+					{
+						//other than cur cell in the cur row
+						//document.write ( ">>" + unlockrow + " " + updateCurBlockrow + "<BR>");
+						if ( updateCurBlockrow != unlockcol
+							&& arrAssumption [ unlockrow ] [ updateCurBlockrow ].length == 2 )
+						{	
+							var strGetCurDig = arrAssumption [ unlockrow ] [ updateCurBlockrow ].toString();
+							//document.write ( "<br>CompareRow |=====><br>" + strGetCurDig + "(" + unlockrow + "," + updateCurBlockrow + ")" );
+							if ( 
+								strLockedDigits.indexOf ( strGetCurDig.charAt(0) ) != -1
+								&&
+								strLockedDigits.indexOf ( strGetCurDig.charAt(1) ) != -1
+							   )
+							{
+								if ( ( unlockrow >= RMin && unlockrow <= RMax ) && ( updateCurBlockrow >= CMin && updateCurBlockrow <= CMax) )
+								{
+									insideBlock = 1;
+								}																
+								
+								for ( var updateCurBlockCol = 0; updateCurBlockCol < arrAssumption.length; updateCurBlockCol++ ) 
+								{	
+									if ( updateCurBlockCol != unlockrow 
+										&& arrAssumption [ updateCurBlockCol ] [ unlockcol ].length == 2 )
+									{
+										var strGetCurDig1 = arrAssumption [ updateCurBlockCol ] [ unlockcol ].toString();
+										
+										if ( 
+											strLockedDigits.indexOf ( strGetCurDig1.charAt(0) ) != -1
+											&&
+											strLockedDigits.indexOf ( strGetCurDig1.charAt(1) ) != -1
+									   	)
+										{	
+											if ( insideBlock == 1 && ( updateCurBlockCol >= RMin && updateCurBlockCol <= RMax ) && ( unlockcol >= CMin && unlockcol <= CMax) )
+											{
+												insideBlock = 3;
+											}
+											else if ( ( updateCurBlockCol >= RMin && updateCurBlockCol <= RMax ) && ( unlockcol >= CMin && unlockcol <= CMax) )
+											{
+												insideBlock = 2;
+											}
+
+											if ( insideBlock == 1 || insideBlock == 2 )
+											{
+
+												var strEliminator = "";
+
+												for ( var eliminateDig = 0; eliminateDig < strLockedDigits.length; eliminateDig++ )
+												{								
+													if 
+													( 
+														strGetCurDig.indexOf ( strLockedDigits.charAt(eliminateDig) ) != -1 
+														&&
+														strGetCurDig1.indexOf ( strLockedDigits.charAt(eliminateDig) ) != -1 	
+													)
+													{	
+														strEliminator = strLockedDigits.charAt(eliminateDig);
+													}
+												}
+												
+												if ( insideBlock == 1 )
+												{
+													var strReplace = "";
+
+													if ( arrAssumption [ strRemRows.charAt(0) ] [ unlockcol ].toString().indexOf (strEliminator) != -1 ) 
+													{
+														strReplace = arrAssumption [ strRemRows.charAt(0) ] [ unlockcol ].toString();
+														strReplace = strReplace.replace ( strEliminator, '' );
+														arrAssumption [ strRemRows.charAt(0) ] [ unlockcol ] = strReplace;
+
+														if ( strReplace.length == 1 )
+														{
+															document.write ( "<BR>Found in xyz wing (" + strRemRows.charAt(0) +"," + unlockcol + ")=" + strReplace + "<BR>");
+															foundADigit = 1;
+															arrGetInputs [ strRemRows.charAt(0) ] [ unlockcol ] = parseInt ( strReplace, 10 );
+															DigitsFound++;
+														}
+														else
+														{
+															CandidatesFound = 1;
+														}
+													}
+													else if ( arrAssumption [ strRemRows.charAt(1) ] [ unlockcol ].toString().indexOf (strEliminator) != -1 ) 
+													{
+														strReplace = arrAssumption [ strRemRows.charAt(1) ] [ unlockcol ].toString();
+														strReplace = strReplace.replace ( strEliminator, '' );
+														arrAssumption [ strRemRows.charAt(1) ] [ unlockcol ] = strReplace;
+														
+														if ( strReplace.length == 1 )
+														{
+															document.write ( "<BR>Found in xyz wing (" + strRemRows.charAt(1) +"," + unlockcol + ")=" + strReplace + "<BR>");
+															foundADigit = 1;
+															arrGetInputs [ strRemRows.charAt(1) ] [ unlockcol ] = parseInt ( strReplace, 10 );
+															DigitsFound++;
+														}
+														else
+														{
+															CandidatesFound = 1;
+														}
+													}
+												}
+												else if ( insideBlock == 2 )
+												{
+													var strReplace = "";
+													
+													if ( arrAssumption [ unlockrow ] [ strRemCols.charAt(0) ].toString().indexOf (strEliminator) != -1 ) 
+													{//more test to be done on this method
+														strReplace 	= arrAssumption [ unlockrow ] [ strRemCols.charAt(0) ].toString();
+														strReplace 	= strReplace.replace ( strEliminator, '' );
+														arrAssumption [ unlockrow ] [ strRemCols.charAt(0) ] = strReplace;
+														
+														if ( strReplace.length == 1 )
+														{
+															document.write ( "<BR>Found in xyz wing (" + unlockrow +"," + strRemCols.charAt(0) + ")=" + strReplace + "<BR>");
+															foundADigit = 1;
+															arrGetInputs [ unlockrow ] [ strRemCols.charAt(0) ] = parseInt ( strReplace, 10 );
+															DigitsFound++;
+														}
+														else
+														{
+															CandidatesFound = 1;
+														}
+													}
+													else if ( arrAssumption [ unlockrow ] [ strRemCols.charAt(1) ].toString().indexOf (strEliminator) != -1 ) 
+													{
+														strReplace = arrAssumption [ unlockrow ] [ strRemCols.charAt(1) ].toString();
+														strReplace = strReplace.replace ( strEliminator, '' );
+														arrAssumption [ unlockrow ] [ strRemCols.charAt(1) ] = strReplace;
+
+														if ( strReplace.length == 1 )
+														{
+															document.write ( "<BR>Found in xyz wing (" + unlockrow +"," + strRemCols.charAt(1) + ")=" + strReplace + "<BR>");
+															foundADigit = 1;
+															arrGetInputs [ unlockrow ] [ strRemCols.charAt(1) ] = parseInt ( strReplace, 10 );
+															DigitsFound++;
+														}
+														else
+														{
+															CandidatesFound = 1;
+														}
+													}
+												}												
+
+												if ( foundADigit == 1 )
+												{
+													fnUpdateArrCol();
+													return true;
+												}
+												
+											}											
+											else
+											{												
+												break;
+											}											
+										}
+									}
+								}						
+																	
+							}
+						}
+						
+					}
+
+				}
+			}
+		}
+
+		fnUpdateArrCol();
+		document.write ( "<BR> xyz wing CandidatesFound  :: " + CandidatesFound + "<BR>");
+		if ( CandidatesFound == 1 )
+		{
+			if ( ! fnUnlockAssumptions() )
+			{
+				xyzWing();
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+
+	/*****************************/
+	var atleastfoundone 	= 1;
+	var oneroundcompl	= 0;
+	while ( atleastfoundone == 1 )
+	{		
+	
+	atleastfoundone = 0;	
+
+	for ( var parsecol = 0; parsecol < arrGetInputs.length; parsecol++ )
+	{		
+		
+		ColMax 	= arrColRowMax [ parsecol ];
+		ColMin	= ColMax-2;
+
+		for ( var parserow = 0; parserow < arrGetInputs [ parsecol ].length; parserow++ )
+		{
+
+			if ( arrGetInputs [ parserow ] [ parsecol ] == 0 )
+			{
+				
+				var strBlock 	= strDigits;			
+				RowMax 		= arrColRowMax [ parserow ];
+				RowMin		= RowMax-2;				
+				
+				// Retrieve available numbers from blocks
+				CurrentBlockAvailableNumbers();
+
+				if ( InsertIfFound(1) )
+				{					
+					continue;
+				}
+				
+				// Retrieve available numbers from left - right
+				getNumberByComp_Current_Row();	
+				
+				if ( InsertIfFound(2) )
+				{					
+					continue;
+				}			
+								
+				// Retrieve available numbers from top - down			
+				getNumberByComp_Current_Col();
+
+				if ( InsertIfFound(3) )
+				{					
+					continue;
+				}				
+
+				// Retrieve availabe numbers by checking remaining two rows & cols in the current block
+				getNumberByComp_CurBlock_Rem_RwCol();
+
+				if ( strTemp.length == 1 )
+				{
+					strBlock = strTemp;
+
+					if ( InsertIfFound(4) )
+					{
+						continue;					
+					}
+				}
+
+				//Retrieve available numbers by checking remaining two rows if there is no remaining cols and vice-versa
+				getNumberByComp_either_CurBlock_Rw_or_Col();				
+				
+				if ( strTemp.length == 1 )
+				{
+					strBlock = strTemp;
+
+					if ( InsertIfFound(5) )
+					{
+						continue;
+					}
+				}
+
+				//Retrieve number if one row is filled and exists in other two cols and one row 
+				getNumberIfexists_in_2Rws1Col_or_2Cols1Rw();
+				
+				if ( strTemp.length == 1 )
+				{
+					strBlock = strTemp;
+
+					if ( InsertIfFound(6) )
+					{
+						continue;
+					}
+				}				
+
+				if ( oneroundcompl == 1 )
+				{					
+					//Filtering digit based on numbers availabe for each box
+					fnCheckIfFoundFromAssumptionCollections();
+
+					if ( strTemp.length == 1 )
+					{
+						strBlock = strTemp;
+
+						if ( InsertIfFound(7) )
+						{
+							continue;
+						}
+					}					
+				}
+									
+				arrAssumption [parserow][parsecol] = strBlock;
+				fnUpdateArrCol();		
+		
+			}
+		}
+	}
+	
+	oneroundcompl = 1;
+
+	if ( atleastfoundone == 0 )
+	{		
+		if ( fnUnlockAssumptions() )
+		{
+			atleastfoundone = 1;	
+			oneroundcompl = 0;			
+		}
+		
+		document.write ( "<BR>**************UnlockAssumptions**********************<BR>");
+		for ( print = 0; print < arrAssumption.length; print++ )
+		{
+			document.write ( arrAssumption [print] + "<BR>" );	
+		}
+	}	
+
+	if ( atleastfoundone == 0 )
+	{
+		if ( NakedPair() )
+		{
+			atleastfoundone = 1;	
+			oneroundcompl = 0;
+		}
+		document.write ( "<BR>**************NakedPair**********************<BR>");
+		for ( print = 0; print < arrAssumption.length; print++ )
+		{
+			document.write ( arrAssumption [print] + "<BR>" );	
+		}
+	}
+
+	if ( atleastfoundone == 0 )
+	{
+		if ( SubSets() )
+		{
+			atleastfoundone = 1;	
+			oneroundcompl = 0;
+		}
+		document.write ( "<BR>**************Subsets**********************<BR>");
+		for ( print = 0; print < arrAssumption.length; print++ )
+		{
+			document.write ( arrAssumption [print] + "<BR>" );	
+		}
+	}
+
+	if ( atleastfoundone == 0 )
+	{
+		if ( xyzWing() )
+		{
+			atleastfoundone = 1;	
+			oneroundcompl = 0;
+		}
+		document.write ( "<BR>**************xyzWing**********************<BR>");
+		for ( print = 0; print < arrAssumption.length; print++ )
+		{
+			document.write ( arrAssumption [print] + "<BR>" );	
+		}
+	}	
+
+	}
+
+	// alert (DigitsFound);
+	document.write ( "<BR>**************RESULT**********************<BR>");
+	for ( var print = 0; print < arrGetInputs.length; print++ )
+	{
+		document.write ( arrGetInputs [print] + "<BR>" );
+	}
+	document.write ( "<BR>************************************<BR>");
+	for ( print = 0; print < arrAssumption.length; print++ )
+	{
+		document.write ( arrAssumption [print] + "<BR>" );
+	}
+	
+
+</SCRIPT>
+
